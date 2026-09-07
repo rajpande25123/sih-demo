@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Activity,
   AlertTriangle,
@@ -174,6 +174,7 @@ function App() {
   const [toast, setToast] = useState('')
   const [selectedProject, setSelectedProject] = useState(null)
   const [mapZoom, setMapZoom] = useState(1)
+  const planRef = useRef(null)
   const [chatOpen, setChatOpen] = useState(false)
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
@@ -211,6 +212,14 @@ function App() {
     link.click()
     URL.revokeObjectURL(url)
     notify('Project progress report downloaded.')
+  }
+
+  const toggleImplementationPlan = () => {
+    const nextVisible = !showPlan
+    setShowPlan(nextVisible)
+    if (nextVisible) {
+      window.setTimeout(() => planRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    }
   }
 
   const sendChatMessage = async (event) => {
@@ -261,7 +270,7 @@ function App() {
         <header className="topbar"><button className="icon-button mobile-menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle navigation"><Menu size={19} /></button><div className="crumb"><span>BHUMISETU</span><b>/</b><strong>{activePage === 'Overview' ? 'National overview' : activePage}</strong></div><div className="top-actions"><div className="sync-state"><span className="pulse"></span>Live data <small>Updated 2 min ago</small></div><div className="top-popover-wrap"><button className="icon-button" onClick={() => { setShowNotifications(!showNotifications); setShowHelp(false) }} aria-label="Notifications"><Bell size={18} /><i>4</i></button>{showNotifications && <div className="top-popover"><b>Notifications</b><span>5 milestones are overdue in Rajasthan.</span><span>36 proposals await scrutiny.</span><button onClick={() => { setShowNotifications(false); navigate('Projects') }}>Review actions <ArrowUpRight size={13} /></button></div>}</div><div className="top-popover-wrap"><button className="icon-button" onClick={() => { setShowHelp(!showHelp); setShowNotifications(false) }} aria-label="Help"><CircleHelp size={18} /></button>{showHelp && <div className="top-popover help-popover"><b>Operations guide</b><span>Use the left navigation to move between registers. Every row opens a detailed review action.</span><button onClick={() => { setShowHelp(false); notify('Guide request sent to support.') }}>Contact support <ArrowUpRight size={13} /></button></div>}</div></div></header>
         <div className="page-wrap">
           {activePage === 'Overview' ? <>
-          <section className="page-heading"><div><p className="eyebrow">MINISTRY OF RURAL DEVELOPMENT · DOLR</p><h1>National overview</h1><p className="heading-copy">A live view of land acquisition, compensation and rehabilitation across India.</p></div><div className="heading-actions"><button className="secondary-button" onClick={() => setShowPlan(!showPlan)}><FileText size={16} />{showPlan ? 'Hide implementation plan' : 'View implementation plan'}</button><button className="primary-button" onClick={exportReport}><Download size={16} />Export report</button></div></section>
+          <section className="page-heading"><div><p className="eyebrow">MINISTRY OF RURAL DEVELOPMENT · DOLR</p><h1>National overview</h1><p className="heading-copy">A live view of land acquisition, compensation and rehabilitation across India.</p></div><div className="heading-actions"><button className="secondary-button" onClick={toggleImplementationPlan}><FileText size={16} />{showPlan ? 'Hide implementation plan' : 'View implementation plan'}</button><button className="primary-button" onClick={exportReport}><Download size={16} />Export report</button></div></section>
 
           <section className="kpi-grid">
             <div className="kpi-card accent"><div className="kpi-top"><span>Total land proposed</span><span className="kpi-icon"><Map size={17} /></span></div><strong>18,462 <small>ha</small></strong><div className="kpi-foot positive"><TrendingUp size={14} /> 8.4% <span>vs last quarter</span></div></div>
@@ -278,7 +287,7 @@ function App() {
 
           <section className="panel projects-panel"><div className="panel-heading"><div><p className="eyebrow">PORTFOLIO HEALTH</p><h2>Project progress</h2></div><button className="text-button" onClick={() => navigate('Projects')}>All projects <ArrowUpRight size={14} /></button></div><div className="table-wrap"><table><thead><tr><th>Project</th><th>State</th><th>Status</th><th>Progress</th><th>Parcels</th><th>Area acquired</th><th></th></tr></thead><tbody>{visibleProjects.map((project) => <tr key={project.name}><td><div className="project-name"><span className={`project-bar ${project.color}`}></span><div><b>{project.name}</b><small>{project.code}</small></div></div></td><td>{project.state}</td><td><span className={`status ${project.color}`}><i></i>{project.status}</span></td><td><div className="table-progress"><span><i style={{ width: `${project.progress}%` }}></i></span><b>{project.progress}%</b></div></td><td>{project.parcels}</td><td>{project.area}</td><td><button className="row-action" onClick={() => setSelectedProject(project)} aria-label={`Open ${project.name}`}><Eye size={15} /></button></td></tr>)}</tbody></table>{visibleProjects.length === 0 && <div className="empty-state">No projects match the current filters.</div>}</div></section>
 
-          {showPlan && <section className="plan-section"><div className="plan-heading"><div><p className="eyebrow">IMPLEMENTATION BLUEPRINT</p><h2>Scope of study & technology plan</h2><p>Phased delivery structure for a secure, interoperable national platform.</p></div><span className="plan-badge"><ShieldCheck size={15} />Designed for scale</span></div><div className="plan-grid"><div className="plan-table"><h3>Scope of study</h3><table><thead><tr><th>#</th><th>Workstream</th><th>Owner</th><th>Coverage</th></tr></thead><tbody>{scopeRows.map((row) => <tr key={row[0]}>{row.map((cell, index) => <td key={cell} className={index === 1 ? 'strong-cell' : ''}>{cell}</td>)}</tr>)}</tbody></table></div><div className="plan-table"><h3>Suggested components-wise technology</h3><table><thead><tr><th>Component</th><th>Technology</th><th>Purpose</th></tr></thead><tbody>{techRows.map((row) => <tr key={row[0]}>{row.map((cell, index) => <td key={cell} className={index === 0 ? 'strong-cell' : ''}>{cell}</td>)}</tr>)}</tbody></table></div></div></section>}
+          {showPlan && <section className="plan-section" ref={planRef}><div className="plan-heading"><div><p className="eyebrow">IMPLEMENTATION BLUEPRINT</p><h2>Scope of study & technology plan</h2><p>Phased delivery structure for a secure, interoperable national platform.</p></div><span className="plan-badge"><ShieldCheck size={15} />Designed for scale</span></div><div className="plan-grid"><div className="plan-table"><h3>Scope of study</h3><table><thead><tr><th>#</th><th>Workstream</th><th>Owner</th><th>Coverage</th></tr></thead><tbody>{scopeRows.map((row) => <tr key={row[0]}>{row.map((cell, index) => <td key={cell} className={index === 1 ? 'strong-cell' : ''}>{cell}</td>)}</tr>)}</tbody></table></div><div className="plan-table"><h3>Suggested components-wise technology</h3><table><thead><tr><th>Component</th><th>Technology</th><th>Purpose</th></tr></thead><tbody>{techRows.map((row) => <tr key={row[0]}>{row.map((cell, index) => <td key={cell} className={index === 0 ? 'strong-cell' : ''}>{cell}</td>)}</tr>)}</tbody></table></div></div></section>}
           <footer><span>BHUMISETU · National Land Acquisition & Management System</span><span>Data classification: <b>Government use</b> · Last sync 09 Sep 2026, 11:42 IST</span></footer>
           </> : <OperationalPage page={activePage} onAction={notify} />}
         </div>
