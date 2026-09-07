@@ -7,7 +7,8 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { question, context } = request.body || {}
+    const requestBody = typeof request.body === 'string' ? JSON.parse(request.body) : request.body || {}
+    const { question, context } = requestBody
     if (!question) throw new Error('Question is required')
     if (!process.env.GROQ_API_KEY) throw new Error('GROQ_API_KEY is not configured in Vercel project settings')
 

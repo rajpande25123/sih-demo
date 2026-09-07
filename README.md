@@ -25,6 +25,8 @@ GROQ_MODEL=openai/gpt-oss-20b
 
 5. Redeploy. The dashboard is served from `dist`, and the AI assistant uses the protected `/api/chat` serverless function.
 
+After deployment, open `https://your-vercel-domain.vercel.app/api/health`. It should return `groqKeyConfigured: true`. If it returns `false`, add the environment variables in Vercel and redeploy.
+
 Never commit `.env.local` or paste the API key into frontend code.
 # React + Vite
 
